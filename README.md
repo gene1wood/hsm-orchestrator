@@ -32,16 +32,23 @@ install directory.
 
 ## Configuration
 
+### `config.ini` File Location
+
 By default, the hsm-orchestrator stores configuration at:
 
 * **Linux**: `~/.config/hsm-orchestrator/config.ini`
 * **macOS**: `~/Library/Application Support/hsm-orchestrator/config.ini`
 * **Windows**: `%LOCALAPPDATA%\Mozilla\hsm-orchestrator\config.ini`
 
-You can configure the location of your local [`mozilla-services/hsm`](https://github.com/mozilla-services/hsm) git repo
-and the `csrs` directory within it. For example if the path to your local `mozilla-services/hsm` repo was
-`~/Documents/hsm`, then you could create a `~/Library/Application Support/hsm-orchestrator/config.ini` file with the
-contents of
+You may need to create the `hsm-orchestrator` directory in order to create the `config.ini` within it. 
+
+### `config.ini` Contents
+
+Within that `config.ini` file, you can indicate the location of your local [`mozilla-services/hsm`](https://github.com/mozilla-services/hsm) git repo
+and the `csrs` directory within it.
+
+For example if the path to your local `mozilla-services/hsm` repo on your macOS workstation was `~/Documents/hsm`,
+then you could create a `~/Library/Application Support/hsm-orchestrator/config.ini` file with the contents of
 
 ```ini
 repo_dir = /Users/username/Documents/hsm
@@ -50,8 +57,6 @@ csr_dir = /Users/username/Documents/hsm/csrs
 
 Adding these values to the config means you don't have to pass them on the command line every time you run
 hsm-orchestrator.
-
-You may need to create the `hsm-orchestrator` directory in order to create the `config.ini` within it. 
 
 ---
 
