@@ -218,38 +218,6 @@ def test_git_repo_missing_remote(tmp_path, datafiles):
         )
 
 
-@pytest.mark.datafiles(FIXTURE_DIR / "example.csr")
-def test_running_on_offline_hsm(tmp_path, datafiles):
-    runner = CliRunner()
-    with runner.isolated_filesystem(tmp_path):
-        orchestrator_config_file, repo_dir, csr_dir = set_up_config(
-            tmp_path, configure_paths=True
-        )
-        csr_dir.mkdir()
-        Path(repo_dir / ".git").mkdir()
-        with Path(repo_dir / ".git" / "config").open("w") as f:
-            f.write("[init]\n   defaultBranch = main\n")
-        repo = Repo.init(repo_dir)
-        Path(repo_dir / "certs_issued").mkdir()
-        Path(repo_dir / "file.txt").touch()
-
-        repo.index.commit("Adding file.txt")
-        csr_file = csr_dir / "example.csr"
-        Path(datafiles / "example.csr").rename(csr_file)
-        result = runner.invoke(main, ["check", "--config", orchestrator_config_file])
-        assert type(result.exception) is type(exceptions.RepoNotReady("foo"))
-        assert (
-            re.search(
-                r"The .* repo has no remotes configured that end in"
-                r" mozilla-services/hsm\.git. Make sure the repo is setup with an"
-                r" 'origin' remote pointing to the GitHub repo\.",
-                repr(result.exception),
-                flags=re.MULTILINE,
-            )
-            is not None
-        )
-
-
 @pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "malformed.cnf")
 def test_malformed_cnf_file(tmp_path, datafiles, monkeypatch):
     runner = CliRunner()
