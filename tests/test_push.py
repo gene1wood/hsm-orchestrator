@@ -22,7 +22,12 @@ def test_selecting_usb_stick(tmp_path, datafiles, monkeypatch):
         keyboard_input = f"{env['usb_mount_point']}\n"
         result = runner.invoke(
             main,
-            ["push", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            [
+                "push-to-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
             input=keyboard_input,
         )
         assert "Which mount is the USB stick you would you like to use" in result.output
@@ -38,7 +43,12 @@ def test_save_usb_stick_to_config(tmp_path, datafiles, monkeypatch):
         keyboard_input = f"{env['usb_mount_point']}\ny\n"
         runner.invoke(
             main,
-            ["push", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            [
+                "push-to-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
             input=keyboard_input,
         )
         with env["orchestrator_config_file"].open("r") as f:
@@ -56,7 +66,12 @@ def test_read_usb_stick_mount_from_config(tmp_path, datafiles, monkeypatch):
         keyboard_input = "y\n"
         result = runner.invoke(
             main,
-            ["push", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            [
+                "push-to-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
             input=keyboard_input,
         )
         assert (
@@ -79,7 +94,12 @@ def test_push(tmp_path, datafiles, monkeypatch):
         keyboard_input = f"{env['usb_mount_point']}\nn\n"
         result = runner.invoke(
             main,
-            ["push", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            [
+                "push-to-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
             input=keyboard_input,
         )
         assert "The instructions and files have been written to" in result.output

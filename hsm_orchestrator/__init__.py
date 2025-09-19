@@ -488,7 +488,7 @@ class HsmOrchestrator:
 # {self.csr_file.with_suffix('.crt').name} will be created
 
 # Once this is done, you can remove the USB stick from the HSM server and plug
-# it back into your laptop and run `hsm-orchestrator pull`
+# it back into your laptop and run `hsm-orchestrator pull-from-stick`
 """
         # TODO : Add a listing of the files that are being copied to the USB stick into
         # the instructions.
@@ -590,7 +590,7 @@ def main() -> None:
     pass
 
 
-@main.command("push")
+@main.command("push-to-stick")
 @click.option(
     "--config",
     "orchestrator_config_filename",
@@ -619,7 +619,7 @@ def main() -> None:
     is_flag=True,
     help="Skip performing a git fetch on the repository",
 )
-def push(
+def push_to_stick(
     orchestrator_config_filename: Path,
     repo_dir: Path,
     csr_dir: Path,
@@ -679,7 +679,7 @@ def push(
     )
 
 
-@main.command("pull")
+@main.command("pull-from-stick")
 @click.option(
     "--config",
     "orchestrator_config_filename",
@@ -701,7 +701,7 @@ def push(
     is_flag=True,
     help="Skip performing a git fetch on the repository",
 )
-def pull(
+def pull_from_stick(
     orchestrator_config_filename: Path, repo_dir: Path, skip_git_fetch: bool
 ) -> None:
     """Pull signed certificates and updated CA files from a USB stick
