@@ -21,7 +21,12 @@ def test_empty_usb_stick(tmp_path, datafiles, monkeypatch):
         keyboard_input = f"{env['usb_mount_point']}\nn\n"
         result = runner.invoke(
             main,
-            ["pull", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            [
+                "pull-from-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
             input=keyboard_input,
         )
         assert "Which mount is the USB stick you would you like to use" in result.output
@@ -43,7 +48,12 @@ def test_multiple_ca_crt_files(tmp_path, datafiles, monkeypatch):
         keyboard_input = f"{env['usb_mount_point']}\nn\n"
         result = runner.invoke(
             main,
-            ["pull", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            [
+                "pull-from-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
             input=keyboard_input,
         )
         assert (
@@ -63,7 +73,12 @@ def test_no_crt_files(tmp_path, datafiles, monkeypatch):
         keyboard_input = f"{env['usb_mount_point']}\nn\n"
         result = runner.invoke(
             main,
-            ["pull", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            [
+                "pull-from-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
             input=keyboard_input,
         )
         assert (
@@ -84,7 +99,12 @@ def test_missing_crt_related_files(tmp_path, datafiles, monkeypatch):
         keyboard_input = f"{env['usb_mount_point']}\nn\n"
         result = runner.invoke(
             main,
-            ["pull", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            [
+                "pull-from-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
             input=keyboard_input,
         )
         assert (
@@ -109,7 +129,12 @@ def test_missing_ca_related_files(tmp_path, datafiles, monkeypatch):
         keyboard_input = f"{env['usb_mount_point']}\nn\n"
         result = runner.invoke(
             main,
-            ["pull", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            [
+                "pull-from-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
             input=keyboard_input,
         )
         assert "Some of the expected CA files are missing" in result.output
@@ -134,7 +159,12 @@ def test_file_actions_table_output(tmp_path, datafiles, monkeypatch):
         keyboard_input = f"{env['usb_mount_point']}\nn\n"
         result = runner.invoke(
             main,
-            ["pull", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            [
+                "pull-from-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
             input=keyboard_input,
         )
         result_lines = Text.from_ansi(result.output).plain.splitlines()
@@ -233,7 +263,12 @@ def test_file_actions(tmp_path, datafiles, monkeypatch):
         keyboard_input = f"{env['usb_mount_point']}\nn\ny\n"
         result = runner.invoke(
             main,
-            ["pull", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            [
+                "pull-from-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
             input=keyboard_input,
         )
         assert not Path(env["usb_mount_point"] / "test.crt").exists()

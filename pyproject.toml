@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hsm-orchestrator"
-version = "1.0.2" # REQUIRED, although can be dynamic
+version = "1.1.0"
 description = "Orchestration tool for Mozilla's offline HSM which facilitates conveying a CSR to the air gapped HSM server"
 readme = "README.md"
 requires-python = ">=3.9"

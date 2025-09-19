@@ -8,6 +8,8 @@ It provides commands to:
 * Push the necessary files to a USB stick for transfer to an offline HSM.
 * Pull back the signed certificate and updated Certificate Authority (CA) files from a USB stick.
 
+[![PyPI - Version](https://img.shields.io/pypi/v/hsm-orchestrator)](https://pypi.org/project/hsm-orchestrator/) [![Tests](https://github.com/mozilla/hsm-orchestrator/actions/workflows/tests.yml/badge.svg)](https://github.com/mozilla/hsm-orchestrator/actions/workflows/tests.yml)
+
 ---
 
 ## Installation
@@ -69,16 +71,16 @@ run from anywhere.
 If you've configured the tool by creating a `config.ini` file, you don't need to pass the `--repo-dir /path/to/hsm/repo`
 and `--csr-dir /path/to/csrs` arguments.
 
-### Check
+### `check`
 
 `hsm-orchestrator check`
 
 This will perform checks of the environment and your `.csr` and `.cnf` files to make sure that everything is setup
 correctly.
 
-### Push
+### `push-to-stick`
 
-`hsm-orchestrator push`
+`hsm-orchestrator push-to-stick`
 
 This will first check the environment and files, then copy the `.csr`, `.cnf` and the certificate authority files to a
 USB stick along with an instructions text file on what to do on the offline HSM.
@@ -91,12 +93,12 @@ Once you've plugged the USB stick into the offline HSM, you can display the inst
 
 These instructions will explain what commands to run to operate the offline HSM.
 
-### Pull
+### `pull-from-stick`
 
-`hsm-orchestrator pull`
+`hsm-orchestrator pull-from-stick`
 
-After operating the offline HSM and plugging the USB stick back into your workstation, the pull command will move the
-files off of the USB stick and into the correct directories in the hsm git repo.
+After operating the offline HSM and plugging the USB stick back into your workstation, the pull-from-stick command will
+move the files off of the USB stick and into the correct directories in the hsm git repo.
 
 ## Requirements
 
@@ -130,12 +132,12 @@ files off of the USB stick and into the correct directories in the hsm git repo.
       in the `hsm` git repo.
 2. Run `hsm-orchestrator check` to check the settings in the `.cnf` file and the environment.
 3. Insert a blank USB stick in your workstation.
-4. Run `hsm-orchestartor push` to push the files from the `hsm` git repo to the USB stick.
+4. Run `hsm-orchestartor push-to-stick` to push the files from the `hsm` git repo to the USB stick.
 5. Unmount/eject the USB stick from your workstation and plug the stick into the offline HSM.
 6. On the offline HSM, show the instructions by running `cat *.instructions.txt` in the USB stick's directory.
 7. Run the commands described in the instructions. It's easiest to copy and paste them.
 8. Unmount/eject the USB stick from the offline HSM and plug the stick back into your workstation.
-9. Run `hsm-orchestrator pull` to move the signed certificate and update the CA files in the `hsm` git repo.
+9. Run `hsm-orchestrator pull-from-stick` to move the signed certificate and update the CA files in the `hsm` git repo.
 
 ---
 
