@@ -21,7 +21,7 @@ https://pipx.pypa.io/stable/#install-pipx
 
 Once pipx is installed, you can install hsm-orchestrator by running
 
-`pipx install hsm-orchestator`
+`pipx install hsm-orchestrator`
 
 Note : You don't need to install this as the root user (on macOS or Linux)
 
