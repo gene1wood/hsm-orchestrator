@@ -767,9 +767,11 @@ def pull_from_stick(
     actions.update({x: "delete" for x in remaining_files})
 
     orchestrator.process_usb_files(actions)
-
-
-# TODO : Add textwrap wrap to all echo statements
+    print(
+        "Now that the git repo has been updated with the new files, you likely want "
+        "to commit those changes, push them to the branch and eventually merge the "
+        "branch to main."
+    )
 
 
 @main.command("check")
