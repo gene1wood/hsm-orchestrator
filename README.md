@@ -51,6 +51,8 @@ csr_dir = /Users/username/Documents/hsm/csrs
 Adding these values to the config means you don't have to pass them on the command line every time you run
 hsm-orchestrator.
 
+You may need to create the `hsm-orchestrator` directory in order to create the `config.ini` within it. 
+
 ---
 
 ## Usage
