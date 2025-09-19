@@ -40,11 +40,12 @@ By default, the hsm-orchestrator stores configuration at:
 * **macOS**: `~/Library/Application Support/hsm-orchestrator/config.ini`
 * **Windows**: `%LOCALAPPDATA%\Mozilla\hsm-orchestrator\config.ini`
 
-You may need to create the `hsm-orchestrator` directory in order to create the `config.ini` within it. 
+You may need to create the `hsm-orchestrator` directory in order to create the `config.ini` within it.
 
 ### `config.ini` Contents
 
-Within that `config.ini` file, you can indicate the location of your local [`mozilla-services/hsm`](https://github.com/mozilla-services/hsm) git repo
+Within that `config.ini` file, you can indicate the location of your local [
+`mozilla-services/hsm`](https://github.com/mozilla-services/hsm) git repo
 and the `csrs` directory within it.
 
 For example if the path to your local `mozilla-services/hsm` repo on your macOS workstation was `~/Documents/hsm`,
@@ -115,11 +116,12 @@ files off of the USB stick and into the correct directories in the hsm git repo.
 
 1. Create a new `.csr` + `.cnf` file in the [`csrs`](https://github.com/mozilla-services/hsm/tree/main/csrs) directory
    of the `hsm` git repo.
-    * In the `.cnf` file, the `certs`, `database`, `new_certs_dir`, `certificate` and `serial` settings in the default_ca
-      section (often called `CA_default`) are relative paths pointing to the current working directory. For example,
-      `serial` should have a value like `./serial` or `$dir/serial` where `$dir` is set elsewhere to `.`.
+    * In the `.cnf` file, the `certs`, `database`, `new_certs_dir`, `certificate` and `serial` settings in the
+      default_ca section (often called `CA_default`) are relative paths pointing to the current working directory. For
+      example, `serial` should have a value like `./serial` or `$dir/serial` where `$dir` is set elsewhere to `.`.
     * In the `.cnf` file, the `certificate` setting should have the value of the CA certificate `.crt` filename in the
-      `hsm` git repo's [`certificate-authorities`](https://github.com/mozilla-services/hsm/tree/main/certificate-authorities)
+      `hsm` git repo's
+      [`certificate-authorities`](https://github.com/mozilla-services/hsm/tree/main/certificate-authorities)
       tree.
     * In the `.cnf` file, the `private_key` setting should have the value of the offline HSM application key name
       (instead of a filename as is typically the case). The names of the offline HSM application key names can be found
