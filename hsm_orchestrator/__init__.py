@@ -43,7 +43,7 @@ class HsmOrchestrator:
 
         """
         self.orchestrator_config_filename = orchestrator_config_filename
-        self.REMOTE_URL_SUFFIX = "mozilla-services/hsm.git"
+        self.remote_url_pattern = re.compile(r".*mozilla-services/hsm(\.git)?")
         self.repo_dir = kwargs["repo_dir"] if "repo_dir" in kwargs else None
         self.csr_dir = kwargs["csr_dir"] if "csr_dir" in kwargs else None
 
@@ -313,7 +313,7 @@ class HsmOrchestrator:
 
         """
         repo = git.Repo(self.repo_dir)
-        git_remote_name = validators.validate_environment(repo, self.REMOTE_URL_SUFFIX)
+        git_remote_name = validators.validate_environment(repo, self.remote_url_pattern)
 
         if not skip_git_fetch:
             # Git fetch

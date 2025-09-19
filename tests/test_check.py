@@ -208,8 +208,8 @@ def test_git_repo_missing_remote(tmp_path, datafiles):
         assert type(result.exception) is type(exceptions.RepoNotReady("foo"))
         assert (
             re.search(
-                r"The .* repo has no remotes configured that end in"
-                r" mozilla-services/hsm\.git. Make sure the repo is setup with an"
+                r"The .* repo has no remotes configured that match "
+                r".* Make sure the repo is setup with an"
                 r" 'origin' remote pointing to the GitHub repo\.",
                 repr(result.exception),
                 flags=re.MULTILINE,
@@ -219,7 +219,7 @@ def test_git_repo_missing_remote(tmp_path, datafiles):
 
 
 @pytest.mark.datafiles(FIXTURE_DIR / "example.csr")
-def test_running_on_offline_hsm(tmp_path, datafiles):
+def test_git_repo_remotes(tmp_path, datafiles):
     runner = CliRunner()
     with runner.isolated_filesystem(tmp_path):
         orchestrator_config_file, repo_dir, csr_dir = set_up_config(
@@ -229,24 +229,75 @@ def test_running_on_offline_hsm(tmp_path, datafiles):
         Path(repo_dir / ".git").mkdir()
         with Path(repo_dir / ".git" / "config").open("w") as f:
             f.write("[init]\n   defaultBranch = main\n")
+            f.write('[remote "origin"]\n')
+            f.write("url = git@github.com:octocat/someotherrepo.git\n")
+            f.write("fetch = +refs/heads/*:refs/remotes/origin/*\n")
         repo = Repo.init(repo_dir)
         Path(repo_dir / "certs_issued").mkdir()
-        Path(repo_dir / "file.txt").touch()
-
-        repo.index.commit("Adding file.txt")
+        repo.index.commit("Adding certs_issued")
         csr_file = csr_dir / "example.csr"
         Path(datafiles / "example.csr").rename(csr_file)
-        result = runner.invoke(main, ["check", "--config", orchestrator_config_file])
+        result = runner.invoke(
+            main, ["check", "--skip-git-fetch", "--config", orchestrator_config_file]
+        )
         assert type(result.exception) is type(exceptions.RepoNotReady("foo"))
         assert (
             re.search(
-                r"The .* repo has no remotes configured that end in"
-                r" mozilla-services/hsm\.git. Make sure the repo is setup with an"
+                r"The .* repo has no remotes configured that match "
+                r".* Make sure the repo is setup with an"
                 r" 'origin' remote pointing to the GitHub repo\.",
                 repr(result.exception),
                 flags=re.MULTILINE,
             )
             is not None
+        )
+        with Path(repo_dir / ".git" / "config").open("w") as f:
+            f.write("[init]\n   defaultBranch = main\n")
+            f.write('[remote "origin"]\n')
+            f.write("url = git@github.com:mozilla-services/hsm.git\n")
+            f.write("fetch = +refs/heads/*:refs/remotes/origin/*\n")
+        result = runner.invoke(
+            main, ["check", "--skip-git-fetch", "--config", orchestrator_config_file]
+        )
+        assert (
+            re.search(
+                r"The .* repo has no remotes configured that match",
+                repr(result.exception),
+                flags=re.MULTILINE,
+            )
+            is None
+        )
+        with Path(repo_dir / ".git" / "config").open("w") as f:
+            f.write("[init]\n   defaultBranch = main\n")
+            f.write('[remote "origin"]\n')
+            f.write("url = https://github.com/mozilla-services/hsm.git\n")
+            f.write("fetch = +refs/heads/*:refs/remotes/origin/*\n")
+        result = runner.invoke(
+            main, ["check", "--skip-git-fetch", "--config", orchestrator_config_file]
+        )
+        assert (
+            re.search(
+                r"The .* repo has no remotes configured that match",
+                repr(result.exception),
+                flags=re.MULTILINE,
+            )
+            is None
+        )
+        with Path(repo_dir / ".git" / "config").open("w") as f:
+            f.write("[init]\n   defaultBranch = main\n")
+            f.write('[remote "origin"]\n')
+            f.write("url = https://github.com/mozilla-services/hsm\n")
+            f.write("fetch = +refs/heads/*:refs/remotes/origin/*\n")
+        result = runner.invoke(
+            main, ["check", "--skip-git-fetch", "--config", orchestrator_config_file]
+        )
+        assert (
+            re.search(
+                r"The .* repo has no remotes configured that match",
+                repr(result.exception),
+                flags=re.MULTILINE,
+            )
+            is None
         )
 
 
