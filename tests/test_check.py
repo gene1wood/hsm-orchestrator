@@ -8,6 +8,7 @@ from git import Repo
 from rich.text import Text
 
 from hsm_orchestrator import main, exceptions
+
 # from .setup import print_diags
 from .setup import set_up_environment, set_up_config
 
@@ -686,6 +687,60 @@ def test_wrong_certificate_value(tmp_path, datafiles, monkeypatch):
             re.search(
                 r"What would you like to change the 'certificate' value in the .* to\?",
                 repr(result.output),
+                flags=re.MULTILINE,
+            )
+            is not None
+        )
+
+
+@pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
+def test_unique_subject_yes(tmp_path, datafiles, monkeypatch):
+    runner = CliRunner()
+    with runner.isolated_filesystem(tmp_path):
+        env = set_up_environment(tmp_path, datafiles, monkeypatch)
+        with (
+            Path(datafiles / "example.cnf").open("r") as in_file,
+            env["cnf_file"].open("w") as out_file,
+        ):
+            for line in in_file:
+                if line.startswith("unique_subject"):
+                    out_file.write(
+                        "unique_subject	= yes			# Mozilla CA has issued multiple certs with"
+                        " the same subject\n"
+                    )
+                else:
+                    out_file.write(line)
+        result = runner.invoke(
+            main,
+            ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            input="y\n",
+        )
+        assert (
+            re.search(
+                r'The "unique_subject" field in .* is set to yes \(the default\).',
+                result.output,
+                flags=re.MULTILINE,
+            )
+            is not None
+        )
+        with env["cnf_file"].open("r") as f:
+            assert any(line.startswith("unique_subject = no") for line in f)
+        with (
+            Path(datafiles / "example.cnf").open("r") as in_file,
+            env["cnf_file"].open("w") as out_file,
+        ):
+            for line in in_file:
+                if not line.startswith("unique_subject"):
+                    out_file.write(line)
+        result = runner.invoke(
+            main,
+            ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            input="y\n",
+        )
+        assert (
+            re.search(
+                r'The "unique_subject" field in .* is set to yes \(the default\).',
+                result.output,
                 flags=re.MULTILINE,
             )
             is not None

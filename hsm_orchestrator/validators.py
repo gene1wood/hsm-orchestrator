@@ -62,7 +62,9 @@ def validate_csr_dir(ctx: click.Context, param: click.Parameter, value: Any) -> 
     return csr_dir
 
 
-def validate_environment(repo: git.repo.base.Repo, remote_url_pattern: re.Pattern) -> str:
+def validate_environment(
+    repo: git.repo.base.Repo, remote_url_pattern: re.Pattern
+) -> str:
     """Validate the environment
 
     Look that there's an expected git remote and that we're not running on the
@@ -92,7 +94,7 @@ def validate_environment(repo: git.repo.base.Repo, remote_url_pattern: re.Patter
         raise exceptions.RepoNotReady(
             f"The {repo.working_tree_dir} repo has no remotes configured that match "
             f"'{remote_url_pattern}'. Make sure the repo is setup with an 'origin' "
-            f"remote pointing to the GitHub repo."
+            "remote pointing to the GitHub repo."
         )
 
     return remote_name

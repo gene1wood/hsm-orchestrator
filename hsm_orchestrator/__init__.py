@@ -242,6 +242,26 @@ class HsmOrchestrator:
                 ] = end_date
             self.openssl_config.write()
 
+    def check_update_unique_subject(self) -> None:
+        if (
+            "unique_subject"
+            not in self.openssl_config[self.openssl_config["ca"]["default_ca"]]
+            or self.openssl_config[self.openssl_config["ca"]["default_ca"]][
+                "unique_subject"
+            ].lower()
+            == "yes"
+        ):
+            if Confirm.ask(
+                f'The "unique_subject" field in {self.cnf_file} is set to yes (the'
+                " default). The existing Mozilla CA has issued certificates with"
+                ' non-unique subjects and "no" is recommended. [q]Would you like it to'
+                ' be changed to "no"?[/q]'
+            ):
+                self.openssl_config[self.openssl_config["ca"]["default_ca"]][
+                    "unique_subject"
+                ] = "no"
+                self.openssl_config.write()
+
     def check_ca_files(self) -> None:
         """Verify that required CA files exist (serial, index.txt).
 
@@ -302,6 +322,7 @@ class HsmOrchestrator:
             )
         self.check_update_start_end_date()
         self.check_update_private_key_and_ca_crt()
+        self.check_update_unique_subject()
         self.check_ca_files()
 
     def check_environment(self, skip_git_fetch: bool) -> None:
