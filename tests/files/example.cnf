@@ -14,9 +14,7 @@ dir		= .		# Mozilla using current directory as the CA location
 certs		= $dir		# Where the issued certs are kept
 crl_dir		= $dir		# Where the issued crl are kept
 database	= $dir/index.txt	# database index file.
-#unique_subject	= no			# Set to 'no' to allow creation of
-					# several certs with same subject.
-unique_subject	= yes			# Mozilla default of unique_subject = yes
+unique_subject	= no			# Mozilla CA has issued multiple certs with the same subject
 new_certs_dir	= $dir		# default place for new certs.
 
 certificate	= $dir/test.crt 	# The CA certificate
