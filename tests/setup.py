@@ -1,3 +1,4 @@
+import re
 import traceback
 from pathlib import Path
 from typing import Optional, Dict, Any, Tuple
@@ -5,6 +6,7 @@ from typing import Optional, Dict, Any, Tuple
 import psutil
 from configobj import ConfigObj
 from git import Repo
+from rich.text import Text
 
 
 def print_diags(result: Any, tmp_path: Optional[Path] = None) -> None:
@@ -177,3 +179,46 @@ def set_up_environment(
         "usb_mount_point": usb_mount_point,
         "orchestrator_config_file": orchestrator_config_file,
     }
+
+
+def re_search(
+    pattern: str | re.Pattern[str],
+    text: str | list[str],
+    strip_color: bool = True,
+    reverse: bool = False,
+) -> None:
+    """Search through a string, or list of strings asserting a match to the pattern
+
+    :param pattern: Regex pattern to match
+    :param text: Text to search against
+    :param strip_color: Whether to strip ANSI colors from text
+    :param reverse: Whether to assert that there is *no* match
+    :rtype: None
+    """
+    if type(text) is str:
+        if strip_color:
+            text = Text.from_ansi(text).plain
+        match = re.search(pattern, text, flags=re.MULTILINE)
+        # When the pattern matches the text, match is None.
+        # If reverse is False, this asserts that the pattern matches the text
+        # If reverse is True, this asserts that the pattern does not match the text
+        assert (match is not None) ^ reverse, (
+            f'Regex pattern : "{pattern!r}"\nwas{"" if reverse else " not"} matched in'
+            f' text:\n"{text}"'
+        )
+    else:
+        lines = text
+        if strip_color:
+            lines = [Text.from_ansi(x).plain for x in lines]
+        text = "\n".join(lines)
+        if reverse:
+            match = all([re.search(pattern, x) is None for x in lines])
+        else:
+            match = any([re.search(pattern, x) is not None for x in lines])
+        # When the pattern matches the text, match is None.
+        # If reverse is False, this asserts that the pattern matches the text
+        # If reverse is True, this asserts that the pattern does not match the text
+        assert match, (
+            f'Regex pattern : "{pattern!r}"\nwas{"" if reverse else " not"} matched in'
+            f' text:\n"{text}"'
+        )

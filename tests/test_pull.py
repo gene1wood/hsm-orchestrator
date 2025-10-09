@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 
 import pytest
@@ -6,7 +5,7 @@ from click.testing import CliRunner
 from rich.text import Text
 
 from hsm_orchestrator import main
-from .setup import set_up_environment
+from .setup import set_up_environment, re_search
 
 # from .setup import print_diags
 
@@ -167,82 +166,42 @@ def test_file_actions_table_output(tmp_path, datafiles, monkeypatch):
             ],
             input=keyboard_input,
         )
-        result_lines = Text.from_ansi(result.output).plain.splitlines()
-        assert any([
-            re.match(r"^delete *: .*usb[/\\]test\.crt$", x) is not None
-            for x in result_lines
-        ])
-        assert any([
-            re.match(r"^delete *: .*usb[/\\]unrelated-file\.txt$", x) is not None
-            for x in result_lines
-        ])
-
-        assert any([
-            re.match(
-                r".*repo[/\\]certs_issued[/\\]test *: .*usb[/\\]AUT-123-testing\.crt$",
-                x,
-            )
-            is not None
-            for x in result_lines
-        ])
-        assert any([
-            re.match(
-                r".*repo[/\\]certs_issued[/\\]test *: .*usb[/\\]AUT-123-testing\.csr$",
-                x,
-            )
-            is not None
-            for x in result_lines
-        ])
-        assert any([
-            re.match(
-                r".*repo[/\\]certs_issued[/\\]test *: .*usb[/\\]AUT-123-testing\.cnf$",
-                x,
-            )
-            is not None
-            for x in result_lines
-        ])
-        assert any([
-            re.match(
-                r".*repo[/\\]certs_issued[/\\]test *:"
-                r" .*usb[/\\]AUT-123-testing\.output\.txt$",
-                x,
-            )
-            is not None
-            for x in result_lines
-        ])
-        assert any([
-            re.match(
-                r".*repo[/\\]certs_issued[/\\]test *:"
-                r" .*usb[/\\]AUT-123-testing\.instructions\.txt$",
-                x,
-            )
-            is not None
-            for x in result_lines
-        ])
-
-        assert any([
-            re.match(
-                r".*repo[/\\]certificate-authorities[/\\]simple_test[/\\]test *:"
-                r" .*usb[/\\]serial$",
-                x,
-            )
-            is not None
-            for x in result_lines
-        ])
-        assert any([
-            re.match(
-                r".*repo[/\\]certificate-authorities[/\\]simple_test[/\\]test *:"
-                r" .*usb[/\\]index\.txt$",
-                x,
-            )
-            is not None
-            for x in result_lines
-        ])
-
-        assert any([
-            re.match(r"ignore *: .*usb[/\\]unrelated-directory$", x) is not None
-            for x in result_lines
-        ])
+        result_lines = result.output.splitlines()
+        re_search(r"^delete *: .*usb[/\\]test\.crt$", result_lines)
+        re_search(r"^delete *: .*usb[/\\]unrelated-file\.txt$", result_lines)
+        re_search(
+            r".*repo[/\\]certs_issued[/\\]test *: .*usb[/\\]AUT-123-testing\.crt$",
+            result_lines,
+        )
+        re_search(
+            r".*repo[/\\]certs_issued[/\\]test *: .*usb[/\\]AUT-123-testing\.csr$",
+            result_lines,
+        )
+        re_search(
+            r".*repo[/\\]certs_issued[/\\]test *: .*usb[/\\]AUT-123-testing\.cnf$",
+            result_lines,
+        )
+        re_search(
+            r".*repo[/\\]certs_issued[/\\]test *:"
+            r" .*usb[/\\]AUT-123-testing\.output\.txt$",
+            result_lines,
+        )
+        re_search(
+            r".*repo[/\\]certs_issued[/\\]test *:"
+            r" .*usb[/\\]AUT-123-testing\.instructions\.txt$",
+            result_lines,
+        )
+        re_search(
+            r".*repo[/\\]certificate-authorities[/\\]simple_test[/\\]test *:"
+            r" .*usb[/\\]serial$",
+            result_lines,
+        )
+        re_search(
+            r".*repo[/\\]certificate-authorities[/\\]simple_test[/\\]test *:"
+            r" .*usb[/\\]index\.txt$",
+            result_lines,
+        )
+        re_search(r"^ignore *: .*usb[/\\]unrelated-directory$", result_lines)
 
 
 @pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")

@@ -293,7 +293,7 @@ class HsmOrchestrator:
             if not Path(self.local_ca_path / value).exists():
                 print(
                     f"The file {Path(self.local_ca_path / value)} is missing. This"
-                    f" would be the case if the{self.local_ca_path} is incorrect, the"
+                    f" would be the case if the {self.local_ca_path} is incorrect, the"
                     f" {key} value in {self.cnf_file} was wrong or if this is a newly"
                     " created certificate authority."
                 )

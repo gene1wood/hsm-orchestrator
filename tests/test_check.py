@@ -1,16 +1,14 @@
-import re
 import shutil
 from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
 from git import Repo
-from rich.text import Text
 
 from hsm_orchestrator import main, exceptions
 
 # from .setup import print_diags
-from .setup import set_up_environment, set_up_config
+from .setup import set_up_environment, set_up_config, re_search
 
 FIXTURE_DIR = Path(__file__).parent.resolve() / "files"
 
@@ -103,14 +101,7 @@ def test_git_repo_missing_main_branch(tmp_path):
                 csr_dir,
             ],
         )
-        assert (
-            re.search(
-                r"The .* git repository is missing a \'main\' branch",
-                repr(result.output),
-                flags=re.MULTILINE,
-            )
-            is not None
-        )
+        re_search(r"The .* git repository is missing a \'main\' branch", result.output)
 
 
 def test_git_repo_on_main_branch(tmp_path):
@@ -152,14 +143,9 @@ def test_missing_csr_dir(tmp_path):
                 csr_dir,
             ],
         )
-        assert (
-            re.search(
-                r"Error: Invalid value for '--csr-dir': Directory '[^']+' does not"
-                r" exist\.",
-                result.output,
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r"Error: Invalid value for '--csr-dir': Directory '[^']+' does not exist\.",
+            result.output,
         )
 
 
@@ -177,14 +163,10 @@ def test_missing_csr_file(tmp_path):
         Path(repo_dir / "certs_issued").mkdir()
         repo.index.commit("Adding certs_issued")
         result = runner.invoke(main, ["check", "--config", orchestrator_config_file])
-        assert (
-            re.search(
-                r"Error: Invalid value for '--csr-dir': The .* directory doesn't"
-                r" contain a \.csr file\.",
-                result.output,
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r"Error: Invalid value for '--csr-dir': The .* directory doesn't contain a"
+            r" \.csr file\.",
+            result.output,
         )
 
 
@@ -207,15 +189,11 @@ def test_git_repo_missing_remote(tmp_path, datafiles):
         Path(datafiles / "example.csr").rename(csr_file)
         result = runner.invoke(main, ["check", "--config", orchestrator_config_file])
         assert type(result.exception) is type(exceptions.RepoNotReady("foo"))
-        assert (
-            re.search(
-                r"The .* repo has no remotes configured that match "
-                r".* Make sure the repo is setup with an"
-                r" 'origin' remote pointing to the GitHub repo\.",
-                repr(result.exception),
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r"The .* repo has no remotes configured that match "
+            r".* Make sure the repo is setup with an"
+            r" 'origin' remote pointing to the GitHub repo\.",
+            repr(result.exception),
         )
 
 
@@ -242,16 +220,13 @@ def test_git_repo_remotes(tmp_path, datafiles):
             main, ["check", "--skip-git-fetch", "--config", orchestrator_config_file]
         )
         assert type(result.exception) is type(exceptions.RepoNotReady("foo"))
-        assert (
-            re.search(
-                r"The .* repo has no remotes configured that match "
-                r".* Make sure the repo is setup with an"
-                r" 'origin' remote pointing to the GitHub repo\.",
-                repr(result.exception),
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r"The .* repo has no remotes configured that match "
+            r".* Make sure the repo is setup with an"
+            r" 'origin' remote pointing to the GitHub repo\.",
+            repr(result.exception),
         )
+
         with Path(repo_dir / ".git" / "config").open("w") as f:
             f.write("[init]\n   defaultBranch = main\n")
             f.write('[remote "origin"]\n')
@@ -260,13 +235,10 @@ def test_git_repo_remotes(tmp_path, datafiles):
         result = runner.invoke(
             main, ["check", "--skip-git-fetch", "--config", orchestrator_config_file]
         )
-        assert (
-            re.search(
-                r"The .* repo has no remotes configured that match",
-                repr(result.exception),
-                flags=re.MULTILINE,
-            )
-            is None
+        re_search(
+            r"The .* repo has no remotes configured that match",
+            repr(result.exception),
+            reverse=True,
         )
         with Path(repo_dir / ".git" / "config").open("w") as f:
             f.write("[init]\n   defaultBranch = main\n")
@@ -276,13 +248,10 @@ def test_git_repo_remotes(tmp_path, datafiles):
         result = runner.invoke(
             main, ["check", "--skip-git-fetch", "--config", orchestrator_config_file]
         )
-        assert (
-            re.search(
-                r"The .* repo has no remotes configured that match",
-                repr(result.exception),
-                flags=re.MULTILINE,
-            )
-            is None
+        re_search(
+            r"The .* repo has no remotes configured that match",
+            repr(result.exception),
+            reverse=True,
         )
         with Path(repo_dir / ".git" / "config").open("w") as f:
             f.write("[init]\n   defaultBranch = main\n")
@@ -292,13 +261,10 @@ def test_git_repo_remotes(tmp_path, datafiles):
         result = runner.invoke(
             main, ["check", "--skip-git-fetch", "--config", orchestrator_config_file]
         )
-        assert (
-            re.search(
-                r"The .* repo has no remotes configured that match",
-                repr(result.exception),
-                flags=re.MULTILINE,
-            )
-            is None
+        re_search(
+            r"The .* repo has no remotes configured that match",
+            repr(result.exception),
+            reverse=True,
         )
 
 
@@ -319,14 +285,7 @@ def test_malformed_cnf_file(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="test.crt\n",
         )
-        assert (
-            re.search(
-                r"Unable to parse .*example\.cnf",
-                repr(result.output),
-                flags=re.MULTILINE,
-            )
-            is not None
-        )
+        re_search(r"Unable to parse .*example\.cnf", result.output)
         assert result.exit_code == 1
 
 
@@ -356,14 +315,7 @@ def test_missing_openssl_cnf(tmp_path, datafiles):
             ["check", "--skip-git-fetch", "--config", orchestrator_config_file],
             input="",
         )
-        assert (
-            re.search(
-                r"The CSR .* has no associated \.cnf file\.",
-                repr(result.output),
-                flags=re.MULTILINE,
-            )
-            is not None
-        )
+        re_search(r"The CSR .* has no associated \.cnf file\.", result.output)
 
 
 @pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
@@ -383,14 +335,10 @@ def test_missing_default_ca_setting(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="",
         )
-        assert (
-            re.search(
-                r"The \.cnf file .* is missing a 'default_ca' value in the 'ca' section"
-                r" which is required\.",
-                repr(result.output),
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r"The \.cnf file .* is missing a 'default_ca' value in the 'ca' section"
+            r" which is required\.",
+            result.output,
         )
 
 
@@ -444,14 +392,7 @@ def test_switch_branch(tmp_path, datafiles):
             ["check", "--skip-git-fetch", "--config", orchestrator_config_file],
             input="switch\nfeature_branch\n",
         )
-        assert (
-            re.search(
-                r"The CSR .* has no associated \.cnf file\.",
-                repr(result.output),
-                flags=re.MULTILINE,
-            )
-            is not None
-        )
+        re_search(r"The CSR .* has no associated \.cnf file\.", result.output)
 
 
 @pytest.mark.datafiles(FIXTURE_DIR / "example.csr")
@@ -480,22 +421,8 @@ def test_multiple_csrs(tmp_path, datafiles):
             ["check", "--skip-git-fetch", "--config", orchestrator_config_file],
             input="switch\nfeature_branch\nexample.csr\n",
         )
-        assert (
-            re.search(
-                r"Which CSR would you like to use\?",
-                repr(result.output),
-                flags=re.MULTILINE,
-            )
-            is not None
-        )
-        assert (
-            re.search(
-                r"The CSR .* has no associated \.cnf file\.",
-                repr(result.output),
-                flags=re.MULTILINE,
-            )
-            is not None
-        )
+        re_search(r"Which CSR would you like to use\?", result.output)
+        re_search(r"The CSR .* has no associated \.cnf file\.", result.output)
         assert result.exit_code != 0
 
 
@@ -510,13 +437,9 @@ def test_empty_openssl_cnf(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="",
         )
-        assert (
-            re.search(
-                r"The \.cnf file .* is missing a 'ca' section which is required\.",
-                repr(result.output),
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r"The \.cnf file .* is missing a 'ca' section which is required\.",
+            result.output,
         )
 
 
@@ -537,14 +460,7 @@ def test_missing_default_startdate(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="y\n",
         )
-        assert (
-            re.search(
-                r"There is no start date configured",
-                repr(result.output),
-                flags=re.MULTILINE,
-            )
-            is not None
-        )
+        assert "There is no start date configured" in result.output
 
 
 @pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
@@ -564,14 +480,7 @@ def test_missing_default_enddate(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="y\n",
         )
-        assert (
-            re.search(
-                r"There is no end date configured",
-                repr(result.output),
-                flags=re.MULTILINE,
-            )
-            is not None
-        )
+        assert "There is no end date configured" in result.output
         with env["cnf_file"].open("r") as f:
             assert any(x.startswith("default_enddate") for x in f)
 
@@ -593,14 +502,7 @@ def test_missing_private_key_setting(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="simple_test\n",
         )
-        assert (
-            re.search(
-                r"You must set the 'private_key' value in the .* file",
-                Text.from_ansi(result.output).plain,
-                flags=re.MULTILINE,
-            )
-            is not None
-        )
+        re_search(r"You must set the 'private_key' value in the .* file", result.output)
 
 
 @pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
@@ -624,14 +526,10 @@ def test_wrong_private_key_value(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="simple_test\n",
         )
-        assert (
-            re.search(
-                r"What would you like to change the 'private_key' value in the"
-                r" .*example.cnf to\? \[",
-                Text.from_ansi(result.output).plain,
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r"What would you like to change the 'private_key' value in the"
+            r" .*example.cnf to\? \[",
+            result.output,
         )
 
 
@@ -652,14 +550,7 @@ def test_missing_certificate_setting(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="test.crt\n",
         )
-        assert (
-            re.search(
-                r"The 'certificate' value in the .* file is missing\.",
-                Text.from_ansi(result.output).plain,
-                flags=re.MULTILINE,
-            )
-            is not None
-        )
+        re_search(r"The 'certificate' value in the .* file is missing\.", result.output)
 
 
 @pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
@@ -683,13 +574,9 @@ def test_wrong_certificate_value(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="test.crt\n",
         )
-        assert (
-            re.search(
-                r"What would you like to change the 'certificate' value in the .* to\?",
-                repr(result.output),
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r"What would you like to change the 'certificate' value in the .* to\?",
+            result.output,
         )
 
 
@@ -715,13 +602,9 @@ def test_unique_subject_yes(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="y\n",
         )
-        assert (
-            re.search(
-                r'The "unique_subject" field in .* is set to yes \(the default\).',
-                result.output,
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r'The "unique_subject" field in .* is set to yes \(the default\).',
+            result.output,
         )
         with env["cnf_file"].open("r") as f:
             assert any(line.startswith("unique_subject = no") for line in f)
@@ -737,13 +620,9 @@ def test_unique_subject_yes(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="y\n",
         )
-        assert (
-            re.search(
-                r'The "unique_subject" field in .* is set to yes \(the default\).',
-                result.output,
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r'The "unique_subject" field in .* is set to yes \(the default\).',
+            result.output,
         )
 
 
@@ -768,13 +647,11 @@ def test_missing_serial_file(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="test.crt\n",
         )
-        assert (
-            re.search(
-                r"The file .* is missing.",
-                Text.from_ansi(result.output).plain,
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r"The file .* is missing\. This would be the case if the .* is incorrect,"
+            r" the serial value in .* was wrong or if this is a newly created"
+            r" certificate authority\.",
+            result.output,
         )
         assert result.exit_code == 1
 
@@ -796,15 +673,11 @@ def test_missing_serial_setting(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="y\n",
         )
-        assert (
-            re.search(
-                r'There is no "serial" value configured in the .*example\.cnf'
-                r" file.\nWould you like to have the cnf file updated to set serial to"
-                r' "serial"\? \[y/n]: ',
-                Text.from_ansi(result.output).plain,
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r'There is no "serial" value configured in the .*example\.cnf'
+            r" file.\nWould you like to have the cnf file updated to set serial to"
+            r' "serial"\? \[y/n]: ',
+            result.output,
         )
         with env["cnf_file"].open("r") as f:
             assert any(x == "serial = serial\n" for x in f)
@@ -832,10 +705,10 @@ def test_missing_database(tmp_path, datafiles, monkeypatch):
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
             input="test.crt\n",
         )
-        assert (
-            re.search(
-                r"The file .* is missing.", repr(result.output), flags=re.MULTILINE
-            )
-            is not None
+        re_search(
+            r"The file .* is missing\. This would be the case if the .* is incorrect,"
+            r" the database value in .* was wrong or if this is a newly created"
+            r" certificate authority\.",
+            result.output,
         )
         assert result.exit_code == 1
