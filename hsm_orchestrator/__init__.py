@@ -559,10 +559,28 @@ class HsmOrchestrator:
 
     def process_usb_files(self, actions):
         # Prompt the user to see if they want to perform all the move and delete actions
-        pad_width = max([len(str(actions[x])) for x in actions.keys()])
+        displayed_actions = {}
+        for action, destination in actions.items():
+            displayed_action = (
+                action.relative_to(self.usb_path.parent)
+                if isinstance(action, PurePath)
+                else action
+            )
+            displayed_destination = (
+                destination.relative_to(self.repo_dir.parent)
+                if isinstance(destination, PurePath)
+                else destination
+            )
+            displayed_actions[displayed_action] = displayed_destination
+        pad_width = max(
+            [len(str(displayed_actions[x])) for x in displayed_actions.keys()]
+        )
         print(f"{'Action / Destination':<{pad_width}}   Source File")
         print(
-            "\n".join(f"{str(actions[x]):<{pad_width}} : {x}" for x in actions.keys())
+            "\n".join(
+                f"{str(displayed_actions[x]):<{pad_width}} : {x}"
+                for x in displayed_actions.keys()
+            )
         )
         if Confirm.ask(
             "[q]Would you like to perform these move and delete actions?[/q]"

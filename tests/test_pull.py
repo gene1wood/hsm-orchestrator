@@ -167,41 +167,41 @@ def test_file_actions_table_output(tmp_path, datafiles, monkeypatch):
             input=keyboard_input,
         )
         result_lines = result.output.splitlines()
-        re_search(r"^delete *: .*usb[/\\]test\.crt$", result_lines)
-        re_search(r"^delete *: .*usb[/\\]unrelated-file\.txt$", result_lines)
+        re_search(r"^delete *: usb[/\\]test\.crt$", result_lines)
+        re_search(r"^delete *: usb[/\\]unrelated-file\.txt$", result_lines)
         re_search(
-            r".*repo[/\\]certs_issued[/\\]test *: .*usb[/\\]AUT-123-testing\.crt$",
+            r"repo[/\\]certs_issued[/\\]test *: usb[/\\]AUT-123-testing\.crt$",
             result_lines,
         )
         re_search(
-            r".*repo[/\\]certs_issued[/\\]test *: .*usb[/\\]AUT-123-testing\.csr$",
+            r"repo[/\\]certs_issued[/\\]test *: usb[/\\]AUT-123-testing\.csr$",
             result_lines,
         )
         re_search(
-            r".*repo[/\\]certs_issued[/\\]test *: .*usb[/\\]AUT-123-testing\.cnf$",
+            r"repo[/\\]certs_issued[/\\]test *: usb[/\\]AUT-123-testing\.cnf$",
             result_lines,
         )
         re_search(
-            r".*repo[/\\]certs_issued[/\\]test *:"
-            r" .*usb[/\\]AUT-123-testing\.output\.txt$",
+            r"repo[/\\]certs_issued[/\\]test *:"
+            r" usb[/\\]AUT-123-testing\.output\.txt$",
             result_lines,
         )
         re_search(
-            r".*repo[/\\]certs_issued[/\\]test *:"
-            r" .*usb[/\\]AUT-123-testing\.instructions\.txt$",
+            r"repo[/\\]certs_issued[/\\]test *:"
+            r" usb[/\\]AUT-123-testing\.instructions\.txt$",
             result_lines,
         )
         re_search(
-            r".*repo[/\\]certificate-authorities[/\\]simple_test[/\\]test *:"
-            r" .*usb[/\\]serial$",
+            r"repo[/\\]certificate-authorities[/\\]simple_test[/\\]test *:"
+            r" usb[/\\]serial$",
             result_lines,
         )
         re_search(
-            r".*repo[/\\]certificate-authorities[/\\]simple_test[/\\]test *:"
-            r" .*usb[/\\]index\.txt$",
+            r"repo[/\\]certificate-authorities[/\\]simple_test[/\\]test *:"
+            r" usb[/\\]index\.txt$",
             result_lines,
         )
-        re_search(r"^ignore *: .*usb[/\\]unrelated-directory$", result_lines)
+        re_search(r"^ignore *: usb[/\\]unrelated-directory$", result_lines)
 
 
 @pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
