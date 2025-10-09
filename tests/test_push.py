@@ -1,12 +1,10 @@
-import re
 from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
-from rich.text import Text
 
 from hsm_orchestrator import main
-from .setup import set_up_environment
+from .setup import set_up_environment, re_search
 
 # from .setup import print_diags
 
@@ -74,13 +72,9 @@ def test_read_usb_stick_mount_from_config(tmp_path, datafiles, monkeypatch):
             ],
             input=keyboard_input,
         )
-        assert (
-            re.search(
-                r"The instructions and files have been written to .*usb USB stick\.",
-                Text.from_ansi(result.output).plain,
-                flags=re.MULTILINE,
-            )
-            is not None
+        re_search(
+            r"The instructions and files have been written to .*usb USB stick\.",
+            result.output,
         )
         assert result.exit_code == 0
 
