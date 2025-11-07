@@ -514,10 +514,12 @@ class HsmOrchestrator:
         instructions = f"""
 # Run this command to load the OCS quorum and enter passphrases
 
+cd /root
 {preload_command}
 
 # Run this command to sign a certificate
 
+cd /path/to/usb/stick
 {openssl_path} ca \\
   -config "{self.cnf_file.name}" \\
   -engine nfkm -keyform engine \\
