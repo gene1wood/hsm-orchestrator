@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
+import psutil
+from typing import Any
 
 from hsm_orchestrator import main
 from .setup import set_up_environment, re_search
@@ -29,6 +31,85 @@ def test_selecting_usb_stick(tmp_path, datafiles, monkeypatch):
             input=keyboard_input,
         )
         assert "Which mount is the USB stick you would you like to use" in result.output
+        assert "Would you like to save this path" in result.output
+
+
+@pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
+def test_selecting_usb_stick_with_unsupported_filesystem(tmp_path, datafiles, monkeypatch):
+    runner = CliRunner()
+    with runner.isolated_filesystem(tmp_path):
+        env = set_up_environment(tmp_path, datafiles, create_usb_stick=False)
+
+        # Mock up a fake USB flash drive
+        bad_usb_mount_point = tmp_path / "usb_bad_fs"
+        bad_usb_mount_point.mkdir()
+        usb_mount_point = tmp_path / "usb"
+        usb_mount_point.mkdir()
+        fake_partitions = [
+            psutil._common.sdiskpart(
+                device="/dev/sda1", mountpoint="/", fstype="ext4", opts="rw"
+            ),
+            psutil._common.sdiskpart(
+                device="/dev/sdb1",
+                mountpoint=str(usb_mount_point),
+                fstype="exfat",
+                opts="rw",
+            ),
+            psutil._common.sdiskpart(
+                device="/dev/sdc1",
+                mountpoint=str(bad_usb_mount_point),
+                fstype="fuseblk",  # fuseblk is what the ntfs-3g FUSE filesystem shows up as
+                opts="rw",
+            ),
+        ]
+
+        def fake_disk_partitions(all: bool = False) -> Any:
+            return fake_partitions
+
+        if monkeypatch is not None:
+            monkeypatch.setattr(psutil, "disk_partitions", fake_disk_partitions)
+
+        Path(datafiles / "example.cnf").rename(env["cnf_file"])
+
+        # Enter a mount with an unsupported filesystem and fail
+        keyboard_input = f"{bad_usb_mount_point}\n"
+        result = runner.invoke(
+            main,
+            [
+                "push-to-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
+            input=keyboard_input,
+        )
+        assert "Which mount is the USB stick you would you like to use" in result.output
+        re_search(
+            r"The .* device uses the .* filesystem which isn't supported by the offline"
+            r" HSM OS\. Choose a different device\.",
+            result.output,
+        )
+        assert "Would you like to save this path" not in result.output
+
+        # First enter a mount with an unsupported filesystem,
+        # then enter a mount with a supported filesystem
+        keyboard_input = f"{bad_usb_mount_point}\n{usb_mount_point}\n"
+        result = runner.invoke(
+            main,
+            [
+                "push-to-stick",
+                "--skip-git-fetch",
+                "--config",
+                env["orchestrator_config_file"],
+            ],
+            input=keyboard_input,
+        )
+        assert "Which mount is the USB stick you would you like to use" in result.output
+        re_search(
+            r"The .* device uses the .* filesystem which isn't supported by the offline"
+            r" HSM OS\. Choose a different device\.",
+            result.output,
+        )
         assert "Would you like to save this path" in result.output
 
 

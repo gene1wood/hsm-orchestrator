@@ -26,6 +26,16 @@ DEFAULT_CONFIG_FILE = user_config_path(
 ) / Path("config.ini")
 DEFAULT_CERT_DURATION = datetime.timedelta(days=365 * 5)
 DEFAULT_CERT_START_DAYS_AGO = datetime.timedelta(days=30)
+SUPPORTED_FILESYSTEMS = [
+    "ext4",
+    "ext3",
+    "ext2",
+    "iso9660",
+    "vfat",
+    "exfat",
+    "hfs",
+    "hfsplus",
+]
 
 rich.reconfigure(
     theme=rich.theme.Theme({"q": "bold green", "e": "bold purple"}), soft_wrap=True
@@ -437,6 +447,17 @@ class HsmOrchestrator:
                 choices=[str(x.mountpoint) for x in mounts] + ["rescan"],
             )
             if self.usb_path != "rescan":
+                fstype = [
+                    x for x in psutil.disk_partitions() if x.mountpoint == self.usb_path
+                ][0].fstype
+                if fstype not in SUPPORTED_FILESYSTEMS:
+                    print(
+                        f"The {self.usb_path} device uses the {fstype} filesystem which"
+                        " isn't supported by the offline HSM OS. Choose a different"
+                        " device."
+                    )
+                    self.usb_path = "rescan"
+                    continue
                 if self.usb_path != self.orchestrator_config.get(
                     "usb_stick_path", []
                 ) and Confirm.ask(

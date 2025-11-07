@@ -74,7 +74,10 @@ def set_up_config(
 
 
 def set_up_environment(
-    tmp_path: Path, datafiles: Path, monkeypatch: Optional[Any] = None
+    tmp_path: Path,
+    datafiles: Path,
+    monkeypatch: Optional[Any] = None,
+    create_usb_stick: bool = True,
 ) -> Dict[str, Path]:
     """
     Set up a complete testing environment, including a git repository, certificate
@@ -91,6 +94,9 @@ def set_up_environment(
         Optional monkeypatching utility (pytest's ``monkeypatch`` fixture),
         used to replace ``psutil.disk_partitions`` with a fake implementation.
     :type monkeypatch: Any or None
+    :param create_usb_stick:
+        Optional setting to control if a fake USB mount is created or not..
+    :type create_usb_stick: bool
     :return:
         A dictionary containing paths to environment components, with keys:
         ``repo_dir``, ``csr_dir``, ``cnf_file``, ``usb_mount_point``, and
@@ -151,34 +157,38 @@ def set_up_environment(
     feature_branch.checkout()
     cnf_file = csr_dir / "example.cnf"
 
-    # Mock up a fake USB flash drive
-    usb_mount_point = tmp_path / "usb"
-    usb_mount_point.mkdir()
-    fake_partitions = [
-        psutil._common.sdiskpart(
-            device="/dev/sda1", mountpoint="/", fstype="ext4", opts="rw"
-        ),
-        psutil._common.sdiskpart(
-            device="/dev/sdb1",
-            mountpoint=str(usb_mount_point),
-            fstype="exfat",
-            opts="rw",
-        ),
-    ]
-
-    def fake_disk_partitions(all: bool = False) -> Any:
-        return fake_partitions
-
-    if monkeypatch is not None:
-        monkeypatch.setattr(psutil, "disk_partitions", fake_disk_partitions)
-
-    return {
+    result = {
         "repo_dir": repo_dir,
         "csr_dir": csr_dir,
         "cnf_file": cnf_file,
-        "usb_mount_point": usb_mount_point,
         "orchestrator_config_file": orchestrator_config_file,
     }
+
+    if create_usb_stick:
+        # Mock up a fake USB flash drive
+        usb_mount_point = tmp_path / "usb"
+        usb_mount_point.mkdir()
+        fake_partitions = [
+            psutil._common.sdiskpart(
+                device="/dev/sda1", mountpoint="/", fstype="ext4", opts="rw"
+            ),
+            psutil._common.sdiskpart(
+                device="/dev/sdb1",
+                mountpoint=str(usb_mount_point),
+                fstype="exfat",
+                opts="rw",
+            ),
+        ]
+
+        def fake_disk_partitions(all: bool = False) -> Any:
+            return fake_partitions
+
+        if monkeypatch is not None:
+            monkeypatch.setattr(psutil, "disk_partitions", fake_disk_partitions)
+
+        result["usb_mount_point"] = usb_mount_point
+
+    return result
 
 
 def re_search(
