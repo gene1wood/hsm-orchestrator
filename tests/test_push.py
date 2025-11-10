@@ -35,7 +35,9 @@ def test_selecting_usb_stick(tmp_path, datafiles, monkeypatch):
 
 
 @pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
-def test_selecting_usb_stick_with_unsupported_filesystem(tmp_path, datafiles, monkeypatch):
+def test_selecting_usb_stick_with_unsupported_filesystem(
+    tmp_path, datafiles, monkeypatch
+):
     runner = CliRunner()
     with runner.isolated_filesystem(tmp_path):
         env = set_up_environment(tmp_path, datafiles, create_usb_stick=False)

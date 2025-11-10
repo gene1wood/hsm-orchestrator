@@ -115,8 +115,8 @@ class HsmOrchestrator:
                         "", inline_comment
                     )
 
-    def check_update_private_key_and_ca_crt(self) -> None:
-        """Validate and update the OpenSSL 'private_key' and 'certificate' values.
+    def check_update_private_key(self) -> None:
+        """Validate and update the OpenSSL 'private_key' value.
 
         Prompts the user if the referenced files are missing or invalid and writes
         updates back to the OpenSSL configuration file.
@@ -129,10 +129,6 @@ class HsmOrchestrator:
         private_key_name = self.openssl_config[
             self.openssl_config["ca"]["default_ca"]
         ].get("private_key")
-        # 'certificate' OpenSSL config value is equivalent to the "-cert" CLI argument
-        ca_crt_name = self.openssl_config[self.openssl_config["ca"]["default_ca"]].get(
-            "certificate"
-        )
 
         ca_dir = Path(self.repo_dir / Path("certificate-authorities"))
         possible_private_key_names = [x.name for x in ca_dir.iterdir() if x.is_dir()]
@@ -150,6 +146,12 @@ class HsmOrchestrator:
                 f" '{private_key_name}' doesn't map to a directory in the"
                 " hsm/certificate-authorities/ directory."
             )
+        elif private_key_name == "simple_test":
+            prompt_for_private_key = Confirm.ask(
+                f"The 'private_key' in the {self.cnf_file} file is set to 'simple_test'"
+                " which is a test private key. [q]Would you like to change it to"
+                " something different?[/q]"
+            )
         if prompt_for_private_key:
             private_key_name = Prompt.ask(
                 "[q]What would you like to change the 'private_key' value in the"
@@ -161,7 +163,24 @@ class HsmOrchestrator:
             ] = private_key_name
             self.openssl_config.write()
 
+    def check_update_ca_crt(self) -> None:
+        """Validate and update the OpenSSL 'certificate' value.
+
+        Prompts the user if the referenced files are missing or invalid and writes
+        updates back to the OpenSSL configuration file.
+
+        :returns: None
+
+        """
+        ca_crt_name = self.openssl_config[self.openssl_config["ca"]["default_ca"]].get(
+            "certificate"
+        )
+        ca_dir = Path(self.repo_dir / Path("certificate-authorities"))
+        private_key_name = self.openssl_config[
+            self.openssl_config["ca"]["default_ca"]
+        ].get("private_key")
         private_key_path = Path(ca_dir / Path(private_key_name))
+
         prompt_for_certificate = False
         if not ca_crt_name:
             prompt_for_certificate = True
@@ -331,7 +350,8 @@ class HsmOrchestrator:
                 " 'ca' section which is required."
             )
         self.check_update_start_end_date()
-        self.check_update_private_key_and_ca_crt()
+        self.check_update_private_key()
+        self.check_update_ca_crt()
         self.check_update_unique_subject()
         self.check_ca_files()
 

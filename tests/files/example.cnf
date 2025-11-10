@@ -22,7 +22,7 @@ serial		= $dir/serial 		# The current serial number
 crlnumber	= $dir/crlnumber	# the current crl number
 					# must be commented out to leave a V1 CRL
 crl		= $dir/crl.pem 		# The current CRL
-private_key	= simple_test   # The private key
+private_key	= simple_example   # The private key
 
 x509_extensions	= mozilla_amo_intermediate_ca		# The extensions to add to the cert
 
