@@ -191,6 +191,20 @@ def set_up_environment(
     return result
 
 
+def set_up_usb(usb_mount_point: Path) -> None:
+    """Set up a USB mount point for testing"""
+    Path(usb_mount_point / "test.crt").touch()
+    Path(usb_mount_point / "serial").touch()
+    Path(usb_mount_point / "index.txt").touch()
+    Path(usb_mount_point / "AUT-123-testing.crt").touch()
+    Path(usb_mount_point / "AUT-123-testing.cnf").touch()
+    Path(usb_mount_point / "AUT-123-testing.csr").touch()
+    Path(usb_mount_point / "AUT-123-testing.output.txt").touch()
+    Path(usb_mount_point / "AUT-123-testing.instructions.txt").touch()
+    Path(usb_mount_point / "unrelated-file.txt").touch()
+    Path(usb_mount_point / "unrelated-directory").mkdir()
+
+
 def re_search(
     pattern: str | re.Pattern[str],
     text: str | list[str],
