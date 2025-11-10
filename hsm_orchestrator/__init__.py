@@ -1,4 +1,5 @@
 import datetime
+import stat
 import re
 import shutil
 from pathlib import Path, PurePath
@@ -638,7 +639,14 @@ cd /path/to/usb/stick
                     filename.mkdir()
                     print(f"Created {filename}")
                 elif issubclass(type(actions[filename]), PurePath):
-                    shutil.copy2(filename, actions[filename] / filename.name)
+                    destination = Path(actions[filename] / filename.name)
+                    shutil.copy2(filename, destination)
+                    # We only need to ensure that the execute bit isn't set because that's all that git records
+                    # https://github.com/git/git/commit/e447947
+                    destination.chmod(
+                        destination.stat().st_mode
+                        & ~(stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+                    )
                     filename.unlink()
                     print(f"Moved {filename} to {actions[filename]}")
                 elif actions[filename] == "ignore":

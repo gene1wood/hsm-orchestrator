@@ -1,3 +1,4 @@
+import stat
 from pathlib import Path
 
 import pytest
@@ -5,7 +6,7 @@ from click.testing import CliRunner
 from rich.text import Text
 
 from hsm_orchestrator import main
-from .setup import set_up_environment, re_search
+from .setup import set_up_environment, re_search, set_up_usb
 
 # from .setup import print_diags
 
@@ -145,16 +146,7 @@ def test_file_actions_table_output(tmp_path, datafiles, monkeypatch):
     runner = CliRunner()
     with runner.isolated_filesystem(tmp_path):
         env = set_up_environment(tmp_path, datafiles, monkeypatch)
-        Path(env["usb_mount_point"] / "test.crt").touch()
-        Path(env["usb_mount_point"] / "serial").touch()
-        Path(env["usb_mount_point"] / "index.txt").touch()
-        Path(env["usb_mount_point"] / "AUT-123-testing.crt").touch()
-        Path(env["usb_mount_point"] / "AUT-123-testing.cnf").touch()
-        Path(env["usb_mount_point"] / "AUT-123-testing.csr").touch()
-        Path(env["usb_mount_point"] / "AUT-123-testing.output.txt").touch()
-        Path(env["usb_mount_point"] / "AUT-123-testing.instructions.txt").touch()
-        Path(env["usb_mount_point"] / "unrelated-file.txt").touch()
-        Path(env["usb_mount_point"] / "unrelated-directory").mkdir()
+        set_up_usb(env["usb_mount_point"])
         keyboard_input = f"{env['usb_mount_point']}\nn\n"
         result = runner.invoke(
             main,
@@ -209,17 +201,11 @@ def test_file_actions(tmp_path, datafiles, monkeypatch):
     runner = CliRunner()
     with runner.isolated_filesystem(tmp_path):
         env = set_up_environment(tmp_path, datafiles, monkeypatch)
-        Path(env["usb_mount_point"] / "test.crt").touch()
-        Path(env["usb_mount_point"] / "serial").touch()
-        Path(env["usb_mount_point"] / "index.txt").touch()
-        Path(env["usb_mount_point"] / "AUT-123-testing.crt").touch()
-        Path(env["usb_mount_point"] / "AUT-123-testing.cnf").touch()
-        Path(env["usb_mount_point"] / "AUT-123-testing.csr").touch()
-        Path(env["usb_mount_point"] / "AUT-123-testing.output.txt").touch()
-        Path(env["usb_mount_point"] / "AUT-123-testing.instructions.txt").touch()
-        Path(env["usb_mount_point"] / "unrelated-file.txt").touch()
-        Path(env["usb_mount_point"] / "unrelated-directory").mkdir()
+        set_up_usb(env["usb_mount_point"])
+        # Remove the certs_issued directory to make sure it gets created
         Path(env["repo_dir"] / "certs_issued" / "test").rmdir()
+        # Set the execute bits on the file so that we can test that they are cleared during the pull
+        Path(env["usb_mount_point"] / "AUT-123-testing.crt").chmod(0o755)
         keyboard_input = f"{env['usb_mount_point']}\nn\ny\n"
         result = runner.invoke(
             main,
@@ -250,7 +236,14 @@ def test_file_actions(tmp_path, datafiles, monkeypatch):
         assert Path(ca_path / "serial").exists()
         assert Path(ca_path / "index.txt").exists()
         cert_path = env["repo_dir"] / "certs_issued" / "test"
+        assert (
+            cert_path.exists()
+        ), "The certs_issued/test directory should have been created"
         assert Path(cert_path / "AUT-123-testing.crt").exists()
+        mode = Path(cert_path / "AUT-123-testing.crt").stat().st_mode
+        assert not (
+            mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        ), "The execute bits on the file should have been cleared"
         assert Path(cert_path / "AUT-123-testing.cnf").exists()
         assert Path(cert_path / "AUT-123-testing.csr").exists()
         assert Path(cert_path / "AUT-123-testing.output.txt").exists()
