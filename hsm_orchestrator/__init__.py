@@ -355,6 +355,7 @@ class HsmOrchestrator:
         self.check_update_ca_crt()
         self.check_update_unique_subject()
         self.check_ca_files()
+        print("Check completed.")
 
     def check_environment(self, skip_git_fetch: bool) -> None:
         """Validate the git environment and prepare for CSR processing.

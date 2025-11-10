@@ -776,3 +776,21 @@ def test_missing_database(tmp_path, datafiles, monkeypatch):
             result.output,
         )
         assert result.exit_code == 1
+
+
+@pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
+def test_check(tmp_path, datafiles, monkeypatch):
+    runner = CliRunner()
+    with runner.isolated_filesystem(tmp_path):
+        env = set_up_environment(tmp_path, datafiles, monkeypatch)
+        shutil.copy2(Path(datafiles / "example.cnf"), env["cnf_file"])
+        result = runner.invoke(
+            main,
+            ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            input="",
+        )
+        re_search(
+            r"Check completed\.",
+            result.output,
+        )
+        assert result.exit_code == 0
