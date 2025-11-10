@@ -114,17 +114,17 @@ def set_up_environment(
     Path(repo_dir / "certs_issued").mkdir()
     Path(repo_dir / "certs_issued" / "test").mkdir()
     Path(repo_dir / "certificate-authorities").mkdir()
-    Path(repo_dir / "certificate-authorities" / "simple_test").mkdir()
-    Path(repo_dir / "certificate-authorities" / "simple_test" / "test").mkdir()
+    Path(repo_dir / "certificate-authorities" / "simple_example").mkdir()
+    Path(repo_dir / "certificate-authorities" / "simple_example" / "test").mkdir()
     Path(
-        repo_dir / "certificate-authorities" / "simple_test" / "test" / "test.crt"
+        repo_dir / "certificate-authorities" / "simple_example" / "test" / "test.crt"
     ).touch()
     with Path(
-        repo_dir / "certificate-authorities" / "simple_test" / "test" / "serial"
+        repo_dir / "certificate-authorities" / "simple_example" / "test" / "serial"
     ).open("w") as f:
         f.write("01")
     with Path(
-        repo_dir / "certificate-authorities" / "simple_test" / "test" / "index.txt"
+        repo_dir / "certificate-authorities" / "simple_example" / "test" / "index.txt"
     ).open("w") as f:
         f.write(
             "V\t22511013200827Z\t\t01\tunknown\t/C=US/O=Mozilla Corporation/OU=Mozilla"

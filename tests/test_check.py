@@ -500,7 +500,7 @@ def test_missing_private_key_setting(tmp_path, datafiles, monkeypatch):
         result = runner.invoke(
             main,
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
-            input="simple_test\n",
+            input="simple_example\n",
         )
         re_search(r"You must set the 'private_key' value in the .* file", result.output)
 
@@ -524,7 +524,71 @@ def test_wrong_private_key_value(tmp_path, datafiles, monkeypatch):
         result = runner.invoke(
             main,
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
-            input="simple_test\n",
+            input="simple_example\n",
+        )
+        re_search(
+            r"What would you like to change the 'private_key' value in the"
+            r" .*example.cnf to\? \[",
+            result.output,
+        )
+
+
+@pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
+def test_using_test_private_key(tmp_path, datafiles, monkeypatch):
+    runner = CliRunner()
+    with runner.isolated_filesystem(tmp_path):
+        env = set_up_environment(tmp_path, datafiles, monkeypatch)
+        repo_dir = env["repo_dir"]
+        Path(repo_dir / "certificate-authorities" / "simple_test").mkdir()
+        Path(repo_dir / "certificate-authorities" / "simple_test" / "test").mkdir()
+        Path(
+            repo_dir / "certificate-authorities" / "simple_test" / "test" / "test.crt"
+        ).touch()
+        with Path(
+            repo_dir / "certificate-authorities" / "simple_test" / "test" / "serial"
+        ).open("w") as f:
+            f.write("01")
+        with Path(
+            repo_dir / "certificate-authorities" / "simple_test" / "test" / "index.txt"
+        ).open("w") as f:
+            f.write(
+                "V\t22511013200827Z\t\t01\tunknown\t/C=US/O=Mozilla"
+                " Corporation/OU=Mozilla AMO Production Signing Service/CN=test"
+            )
+        with (
+            Path(datafiles / "example.cnf").open("r") as in_file,
+            env["cnf_file"].open("w") as out_file,
+        ):
+            for line in in_file:
+                if line.startswith("private_key"):
+                    out_file.write("private_key	= simple_test   # The private key\n")
+                else:
+                    out_file.write(line)
+        result = runner.invoke(
+            main,
+            ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            input="n\n",
+        )
+        re_search(
+            r"The 'private_key' in the .* file is set to 'simple_test' which is a test"
+            r" private key\. Would you like to change it to something different\?",
+            result.output,
+        )
+        re_search(
+            r"What would you like to change the 'private_key' value in the"
+            r" .*example.cnf to\? \[",
+            result.output,
+            reverse=True,
+        )
+        result = runner.invoke(
+            main,
+            ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            input="y\nsimple_example\n",
+        )
+        re_search(
+            r"The 'private_key' in the .* file is set to 'simple_test' which is a test"
+            r" private key\. Would you like to change it to something different\?",
+            result.output,
         )
         re_search(
             r"What would you like to change the 'private_key' value in the"

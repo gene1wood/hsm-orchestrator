@@ -192,12 +192,12 @@ def test_file_actions_table_output(tmp_path, datafiles, monkeypatch):
             result_lines,
         )
         re_search(
-            r"repo[/\\]certificate-authorities[/\\]simple_test[/\\]test *:"
+            r"repo[/\\]certificate-authorities[/\\]simple_example[/\\]test *:"
             r" usb[/\\]serial$",
             result_lines,
         )
         re_search(
-            r"repo[/\\]certificate-authorities[/\\]simple_test[/\\]test *:"
+            r"repo[/\\]certificate-authorities[/\\]simple_example[/\\]test *:"
             r" usb[/\\]index\.txt$",
             result_lines,
         )
@@ -243,7 +243,9 @@ def test_file_actions(tmp_path, datafiles, monkeypatch):
         ).exists()
 
         assert Path(env["usb_mount_point"] / "unrelated-directory").exists()
-        ca_path = env["repo_dir"] / "certificate-authorities" / "simple_test" / "test"
+        ca_path = (
+            env["repo_dir"] / "certificate-authorities" / "simple_example" / "test"
+        )
         assert Path(ca_path / "serial").exists()
         assert Path(ca_path / "index.txt").exists()
         cert_path = env["repo_dir"] / "certs_issued" / "test"
