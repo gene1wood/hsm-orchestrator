@@ -559,7 +559,7 @@ cd /path/to/usb/stick
         return instructions
 
     def create_list_of_cert_and_artifacts(self, actions, ca_cert_filename_on_usb):
-        # Move the newly created certificate and it's associated artifacts to the
+        # Move the newly created certificate, and it's associated artifacts to the
         # certs_issued directory
         if len([x for x in self.usb_path.glob("*.crt") if x not in actions]) == 0:
             print(
@@ -585,6 +585,10 @@ cd /path/to/usb/stick
             certs_issued_destination = (
                 self.repo_dir / "certs_issued" / Path(ca_cert_filename_on_usb).stem
             )
+            if (
+                not certs_issued_destination.exists()
+            ) and certs_issued_destination not in actions:
+                result.update({certs_issued_destination: "mkdir"})
             result.update({x: certs_issued_destination for x in expected_cert_files})
         return result
 
@@ -625,19 +629,20 @@ cd /path/to/usb/stick
                 for x in displayed_actions.keys()
             )
         )
-        if Confirm.ask(
-            "[q]Would you like to perform these move and delete actions?[/q]"
-        ):
-            for source_file in actions:
-                if actions[source_file] == "delete":
-                    source_file.unlink()
-                    print(f"Deleted {source_file}")
-                elif issubclass(type(actions[source_file]), PurePath):
-                    shutil.copy2(source_file, actions[source_file] / source_file.name)
-                    source_file.unlink()
-                    print(f"Moved {source_file} to {actions[source_file]}")
-                elif actions[source_file] == "ignore":
-                    print(f"Ignored {source_file}")
+        if Confirm.ask("[q]Would you like to perform these actions?[/q]"):
+            for filename in actions:
+                if actions[filename] == "delete":
+                    filename.unlink()
+                    print(f"Deleted {filename}")
+                elif actions[filename] == "mkdir":
+                    filename.mkdir()
+                    print(f"Created {filename}")
+                elif issubclass(type(actions[filename]), PurePath):
+                    shutil.copy2(filename, actions[filename] / filename.name)
+                    filename.unlink()
+                    print(f"Moved {filename} to {actions[filename]}")
+                elif actions[filename] == "ignore":
+                    print(f"Ignored {filename}")
 
 
 def set_default_click_arguments_from_config(
@@ -800,7 +805,7 @@ def pull_from_stick(
     """
     orchestrator = HsmOrchestrator(orchestrator_config_filename, repo_dir=repo_dir)
     orchestrator.choose_usb_disk()
-    actions = {}
+    actions = {}  # Key is the file and value is the action to perform on that file
     ca_cert_files_in_repo = {}
     for private_key_directory in [
         x

@@ -219,6 +219,7 @@ def test_file_actions(tmp_path, datafiles, monkeypatch):
         Path(env["usb_mount_point"] / "AUT-123-testing.instructions.txt").touch()
         Path(env["usb_mount_point"] / "unrelated-file.txt").touch()
         Path(env["usb_mount_point"] / "unrelated-directory").mkdir()
+        Path(env["repo_dir"] / "certs_issued" / "test").rmdir()
         keyboard_input = f"{env['usb_mount_point']}\nn\ny\n"
         result = runner.invoke(
             main,
