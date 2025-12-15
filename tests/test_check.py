@@ -336,7 +336,7 @@ def test_cnf_csr_match_existing_certs_issued(tmp_path, datafiles, monkeypatch):
             r"The \.csr file .*, were it to be used to create a \.crt file, would"
             r" create example\.crt which has the same name as the existing issued cert"
             r" .*\. This could cause a collision\. Please change the name of"
-            r" .*/example\.csr and .*/example\.cnf to something distinct\.",
+            r" .*example\.csr and .*example\.cnf to something distinct\.",
             result.output,
         )
 
