@@ -319,6 +319,29 @@ def test_missing_openssl_cnf(tmp_path, datafiles):
 
 
 @pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
+def test_cnf_csr_match_existing_certs_issued(tmp_path, datafiles, monkeypatch):
+    runner = CliRunner()
+    with runner.isolated_filesystem(tmp_path):
+        env = set_up_environment(tmp_path, datafiles, monkeypatch)
+        Path(datafiles / "example.cnf").rename(env["cnf_file"])
+        Path(env["repo_dir"] / "certs_issued" / "test" / "example.cnf").touch()
+        Path(env["repo_dir"] / "certs_issued" / "test" / "example.csr").touch()
+        Path(env["repo_dir"] / "certs_issued" / "test" / "example.crt").touch()
+        result = runner.invoke(
+            main,
+            ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
+            input="",
+        )
+        re_search(
+            r"The \.csr file .*, were it to be used to create a \.crt file, would"
+            r" create example\.crt which has the same name as the existing issued cert"
+            r" .*\. This could cause a collision\. Please change the name of"
+            r" .*example\.csr and .*example\.cnf to something distinct\.",
+            result.output,
+        )
+
+
+@pytest.mark.datafiles(FIXTURE_DIR / "example.csr", FIXTURE_DIR / "example.cnf")
 def test_missing_default_ca_setting(tmp_path, datafiles, monkeypatch):
     runner = CliRunner()
     with runner.isolated_filesystem(tmp_path):
@@ -783,7 +806,7 @@ def test_check(tmp_path, datafiles, monkeypatch):
     runner = CliRunner()
     with runner.isolated_filesystem(tmp_path):
         env = set_up_environment(tmp_path, datafiles, monkeypatch)
-        shutil.copy2(Path(datafiles / "example.cnf"), env["cnf_file"])
+        Path(datafiles / "example.cnf").rename(env["cnf_file"])
         result = runner.invoke(
             main,
             ["check", "--skip-git-fetch", "--config", env["orchestrator_config_file"]],
