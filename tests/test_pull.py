@@ -204,7 +204,8 @@ def test_file_actions(tmp_path, datafiles, monkeypatch):
         set_up_usb(env["usb_mount_point"])
         # Remove the certs_issued directory to make sure it gets created
         Path(env["repo_dir"] / "certs_issued" / "test").rmdir()
-        # Set the execute bits on the file so that we can test that they are cleared during the pull
+        # Set the execute bits on the file so that we can test that they are
+        # cleared during the pull
         Path(env["usb_mount_point"] / "AUT-123-testing.crt").chmod(0o755)
         keyboard_input = f"{env['usb_mount_point']}\nn\ny\n"
         result = runner.invoke(

@@ -68,6 +68,7 @@ class HsmOrchestrator:
         self.usb_path = None
         # The path on the workstation to the certificate authorities directory
         self.local_ca_path = None
+        self.ca_cert_files_in_repo = []
 
     def get_openssl_cnf_config(self) -> None:
         """Parse the OpenSSL configuration (.cnf) file.
@@ -115,6 +116,43 @@ class HsmOrchestrator:
                     self.openssl_config[section].inline_comments[key] = pattern.sub(
                         "", inline_comment
                     )
+
+    def get_ca_cert_filename_on_usb(self) -> str:
+        """Identify which file on USB stick is the CA cert
+
+        Compare files on the USB stick with CA certificate files in the repo
+        to identify which one is the CA certificate
+
+        :returns: The filename of the CA certificate on the USB stick
+        """
+        for private_key_directory in [
+            x
+            for x in Path(self.repo_dir / "certificate-authorities").iterdir()
+            if x.is_dir()
+        ]:
+            for certificate_authority_directory in private_key_directory.iterdir():
+                for certificate_file in certificate_authority_directory.iterdir():
+                    self.ca_cert_files_in_repo.append(certificate_file)
+        crt_filenames_on_usb = set(x.name for x in self.usb_path.glob("*.crt"))
+        ca_cert_filenames_on_usb = (
+            set(x.name for x in self.ca_cert_files_in_repo) & crt_filenames_on_usb
+        )
+        if len(ca_cert_filenames_on_usb) == 0:
+            print(
+                "No .crt files were found on the USB stick with names that match CA"
+                " certificate files.We would expect there to be one CA certificate file"
+                " on the USB stick."
+            )
+            exit(1)
+        if len(ca_cert_filenames_on_usb) > 1:
+            print(
+                "There are multiple .crt files on the USB stick with names that match"
+                " CA certificate files.We would only expect there to be one CA"
+                " certificate file on the USB stick."
+            )
+            exit(1)
+        ca_cert_filename_on_usb = next(iter(ca_cert_filenames_on_usb))
+        return ca_cert_filename_on_usb
 
     def check_update_private_key(self) -> None:
         """Validate and update the OpenSSL 'private_key' value.
@@ -329,6 +367,27 @@ class HsmOrchestrator:
                 )
                 exit(1)
 
+    def check_for_matching_issued_cert(self):
+        """Check to see if there is an existing cert which matches the .cnf/.csr
+
+        To prevent issuing a duplicate cert with the same name as an existing
+        issued cert, compare the .cnf/.csr filenames with the existing certs
+        in the certs_issued directory.
+        """
+        issued_cert_map = {
+            x.name: x for x in Path(self.repo_dir / "certs_issued").glob("**/*.crt")
+        }
+        if self.csr_file.with_suffix(".crt").name in issued_cert_map.keys():
+            print(
+                f"The .csr file {self.csr_file}, were it to be used to create a .crt"
+                f" file, would create {self.csr_file.with_suffix('.crt').name} which"
+                " has the same name as the existing issued cert"
+                f" {issued_cert_map[self.csr_file.with_suffix('.crt').name]}. This"
+                f" could cause a collision. Please change the name of {self.csr_file}"
+                f" and {self.cnf_file} to something distinct."
+            )
+            exit(1)
+
     def check_update_cnf_file(self) -> None:
         """Perform validation and update of the OpenSSL .cnf file.
 
@@ -355,7 +414,6 @@ class HsmOrchestrator:
         self.check_update_ca_crt()
         self.check_update_unique_subject()
         self.check_ca_files()
-        print("Check completed.")
 
     def check_environment(self, skip_git_fetch: bool) -> None:
         """Validate the git environment and prepare for CSR processing.
@@ -642,7 +700,8 @@ cd /path/to/usb/stick
                 elif issubclass(type(actions[filename]), PurePath):
                     destination = Path(actions[filename] / filename.name)
                     shutil.copy2(filename, destination)
-                    # We only need to ensure that the execute bit isn't set because that's all that git records
+                    # We only need to ensure that the execute bit isn't set because
+                    # that's all that git records
                     # https://github.com/git/git/commit/e447947
                     destination.chmod(
                         destination.stat().st_mode
@@ -814,36 +873,16 @@ def pull_from_stick(
     """
     orchestrator = HsmOrchestrator(orchestrator_config_filename, repo_dir=repo_dir)
     orchestrator.choose_usb_disk()
+
     actions = {}  # Key is the file and value is the action to perform on that file
-    ca_cert_files_in_repo = {}
-    for private_key_directory in [
-        x
-        for x in Path(orchestrator.repo_dir / "certificate-authorities").iterdir()
-        if x.is_dir()
-    ]:
-        for certificate_authority_directory in private_key_directory.iterdir():
-            for certificate_file in certificate_authority_directory.iterdir():
-                ca_cert_files_in_repo[certificate_file.name] = certificate_file
-    crt_filenames_on_usb = set(x.name for x in orchestrator.usb_path.glob("*.crt"))
-    ca_cert_filenames_on_usb = ca_cert_files_in_repo.keys() & crt_filenames_on_usb
-    if len(ca_cert_filenames_on_usb) == 0:
-        print(
-            "No .crt files were found on the USB stick with names that match CA"
-            " certificate files.We would expect there to be one CA certificate file on"
-            " the USB stick."
-        )
-        exit(1)
-    if len(ca_cert_filenames_on_usb) > 1:
-        print(
-            "There are multiple .crt files on the USB stick with names that match CA"
-            " certificate files.We would only expect there to be one CA certificate"
-            " file on the USB stick."
-        )
-        exit(1)
-    ca_cert_filename_on_usb = next(iter(ca_cert_filenames_on_usb))
-    certificate_authority_directory = ca_cert_files_in_repo[
-        ca_cert_filename_on_usb
-    ].parent
+    ca_cert_filename_on_usb = orchestrator.get_ca_cert_filename_on_usb()
+    certificate_authority_directory = next(
+        iter([
+            x
+            for x in orchestrator.ca_cert_files_in_repo
+            if x.name == ca_cert_filename_on_usb
+        ])
+    ).parent
     # Delete the CA crt file on the USB stick
     actions[Path(orchestrator.usb_path / ca_cert_filename_on_usb)] = "delete"
 
@@ -925,6 +964,8 @@ def check(
     orchestrator.check_environment(skip_git_fetch)
     orchestrator.get_openssl_cnf_config()
     orchestrator.check_update_cnf_file()
+    orchestrator.check_for_matching_issued_cert()
+    print("Check completed.")
 
 
 if __name__ == "__main__":
