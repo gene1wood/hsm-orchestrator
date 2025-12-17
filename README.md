@@ -8,7 +8,7 @@ It provides commands to:
 * Push the necessary files to a USB stick for transfer to an offline HSM.
 * Pull back the signed certificate and updated Certificate Authority (CA) files from a USB stick.
 
-[![PyPI - Version](https://img.shields.io/pypi/v/hsm-orchestrator)](https://pypi.org/project/hsm-orchestrator/) [![Tests](https://github.com/mozilla/hsm-orchestrator/actions/workflows/tests.yml/badge.svg)](https://github.com/mozilla/hsm-orchestrator/actions/workflows/tests.yml)
+[![PyPI - Version](https://img.shields.io/pypi/v/hsm-orchestrator)](https://pypi.org/project/hsm-orchestrator/) [![Tests](https://github.com/mozilla/hsm-orchestrator/actions/workflows/tests.yml/badge.svg)](https://github.com/mozilla/hsm-orchestrator/actions/workflows/tests.yml) [![Common Changelog](https://common-changelog.org/badge.svg)](https://common-changelog.org)
 
 ---
 
@@ -102,7 +102,7 @@ move the files off of the USB stick and into the correct directories in the hsm 
 
 ## Requirements
 
-* **Python** ≥ 3.9
+* **Python** ≥ 3.10
 * Dependencies (installed automatically):
 
     * [click](https://click.palletsprojects.com/) for CLI arguments
