@@ -102,7 +102,7 @@ move the files off of the USB stick and into the correct directories in the hsm 
 
 ## Requirements
 
-* **Python** ≥ 3.9
+* **Python** ≥ 3.10
 * Dependencies (installed automatically):
 
     * [click](https://click.palletsprojects.com/) for CLI arguments
