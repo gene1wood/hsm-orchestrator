@@ -5,7 +5,7 @@
 ### Changed
 
 - Change unit test regex comparison of tool output so that errors are clearer. ([#19](https://github.com/mozilla/hsm-orchestrator/pull/19)) (Gene Wood)
-- Change minimum Python version to 3.10 ([#29](https://github.com/mozilla/hsm-orchestrator/issues/29)) (Gene Wood)
+- Change minimum Python version to 3.10 ([#28](https://github.com/mozilla/hsm-orchestrator/issues/28)) (Gene Wood)
 
 ### Added
 
@@ -14,7 +14,7 @@
 - Add a check to confirm the USB stick is using a filesystem that the Offline HSM can recognize ([#21](https://github.com/mozilla/hsm-orchestrator/pull/21)) (Gene Wood)
 - Add a check for the openssl.cnf setting of `unique_subject=yes` and prompts the user to change it ([#17](https://github.com/mozilla/hsm-orchestrator/pull/17)) (Gene Wood)
 - Add a check if the `simple_test` private key is being used and warn the user ([#23](https://github.com/mozilla/hsm-orchestrator/pull/23)) (Gene Wood)
-- Add minimum versions for dependencies ([#29](https://github.com/mozilla/hsm-orchestrator/issues/29)) (Gene Wood)
+- Add minimum versions for dependencies ([#28](https://github.com/mozilla/hsm-orchestrator/issues/28)) (Gene Wood)
 
 ### Fixed
 
